@@ -1,0 +1,19 @@
+syntax="proto3";
+
+package inrpc;
+
+service In{
+    rpc SyncMsg(stream Msg) returns (StatusCode){};
+}
+
+
+message Msg{
+    string topic=1;
+    int64 offset=2;
+    string alivetime=3;
+    string body=4;
+}
+
+message StatusCode{
+    int32 sum=1;
+}   
