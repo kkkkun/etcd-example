@@ -16,7 +16,7 @@ func main() {
 		lease                  clientv3.Lease
 		ctx                    context.Context
 		cancelFunc             context.CancelFunc
-		leaseId                clientv3.LeaseID
+		leaseID                clientv3.LeaseID
 		leaseGrantResponse     *clientv3.LeaseGrantResponse
 		leaseKeepAliveChan     <-chan *clientv3.LeaseKeepAliveResponse
 		leaseKeepAliveResponse *clientv3.LeaseKeepAliveResponse
@@ -39,14 +39,14 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	leaseId = leaseGrantResponse.ID
+	leaseID = leaseGrantResponse.ID
 
 	//租约自动过期，立刻过期。//cancelfunc 取消续租，而revoke 则是立即过期
 	ctx, cancelFunc = context.WithCancel(context.TODO())
 	defer cancelFunc()
-	defer lease.Revoke(context.TODO(), leaseId)
+	defer lease.Revoke(context.TODO(), leaseID)
 
-	if leaseKeepAliveChan, err = lease.KeepAlive(ctx, leaseId); err != nil {
+	if leaseKeepAliveChan, err = lease.KeepAlive(ctx, leaseID); err != nil {
 		fmt.Println(err)
 		return
 	}
@@ -60,7 +60,6 @@ func main() {
 				} else {
 					fmt.Println("续租失败")
 				}
-
 			}
 			time.Sleep(time.Second * 1)
 		}
@@ -70,7 +69,7 @@ func main() {
 	txn = kv.Txn(context.TODO())
 
 	txn.If(clientv3.Compare(clientv3.CreateRevision("/dev/lock"), "=", 0)).Then(
-		clientv3.OpPut("/dev/lock", "占用", clientv3.WithLease(leaseId))).Else(
+		clientv3.OpPut("/dev/lock", "占用", clientv3.WithLease(leaseID))).Else(
 		clientv3.OpGet("/dev/lock"))
 	if txnResponse, err = txn.Commit(); err != nil {
 		fmt.Println(err)
